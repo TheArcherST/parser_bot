@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from typing import Union
-from .types import DataPrice, DataShorts, DataOptionsChain
+from .types import DataPrice, DataShorts, DataOptionsChain, DataHistory
 import pandas as pd
 from datetime import datetime, date
 
@@ -95,10 +95,44 @@ def get_options_chain() -> DataOptionsChain:
     return DataOptionsChain(expires, strike_price, put_or_call, volume)
 
 
+def get_history() -> DataHistory:
+    soup = get_soup('https://www.marketbeat.com/stocks/NYSE/SPCE/price-history/')
+
+    all_lines = soup.find('table').find('tbody').find_all('tr')
+
+    date_ = list()
+    opening_price = list()
+    closing_price = list()
+    volume = list()
+
+    for line in all_lines:
+        sections = line.find_all('td')
+        if len(sections) == 1:
+            continue
+        spl = sections[0].text.split('/')
+        month = int(spl[0])
+        day = int(spl[1])
+        year = int(spl[2])
+        exemplar_date = date(year=year, month=month, day=day)
+        date_.append(exemplar_date)
+
+        exemplar_opening_price = to_float(sections[1]['data-sort-value'])
+        opening_price.append(exemplar_opening_price)
+
+        exemplar_closing_price = to_float(sections[2]['data-sort-value'])
+        closing_price.append(exemplar_closing_price)
+
+        exemplar_volume =  to_float(sections[5]['data-sort-value'])
+        volume.append(exemplar_volume)
+
+    return DataHistory(date_, opening_price, closing_price, volume)
+
+
+
 def test():
     # data = get_price_data()
     # print(data)
     # data = get_shorts_data()
     # print(data)
-    data = get_options_chain()
+    data = get_history()
     print(data)

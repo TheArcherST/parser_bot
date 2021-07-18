@@ -83,4 +83,5 @@ def test_get_new_options_chains():
         }
     )
 
-    assert np.all(result == expected)
+    assert expected.shape == result.shape
+    assert np.all(expected == result)

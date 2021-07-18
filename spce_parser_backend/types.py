@@ -1,5 +1,6 @@
 from typing import List
 import pandas as pd
+import numpy as np
 from datetime import datetime, date
 from .config import CHAIN_EQ_CHECK
 from typing import Union
@@ -54,10 +55,33 @@ class DataOptionsChain:  # raw data
         return str(self.df)
 
 
-def get_new_options_chains(old: Union[DataOptionsChain, pd.DataFrame, None], new: Union[DataOptionsChain, pd.DataFrame], chain_eq_check=None) -> pd.DataFrame:
-    if isinstance(old, DataOptionsChain):
+class DataHistory:  # raw data
+    def __init__(self, expires: List[date], strike_price: List[float], put_or_call: List[str], volume: List[float]):
+        self.date = expires
+        self.opening_price = strike_price
+        self.closing_price = put_or_call
+        self.volume = volume
+
+    @property
+    def df(self):
+        return pd.DataFrame(
+            {'date': self.date,
+             'opening_price': self.opening_price,
+             'closing_price': self.closing_price,
+             'volume': self.volume}
+        )
+
+    def __repr__(self):
+        return f"DataHistory(date={self.date}, opening_price={self.opening_price}, closing_price={self.closing_price}, volume={self.volume})"
+
+    def __str__(self):
+        return str(self.df)
+
+
+def get_table_changes(old: Union[DataOptionsChain, DataHistory, pd.DataFrame, None], new: Union[DataOptionsChain, DataHistory, pd.DataFrame], chain_eq_check=None) -> pd.DataFrame:
+    if isinstance(old, (DataOptionsChain, DataHistory)):
         old = old.df
-    if isinstance(new, DataOptionsChain):
+    if isinstance(new, (DataOptionsChain, DataHistory)):
         new = new.df
 
     if old is None:
@@ -76,18 +100,15 @@ def get_new_options_chains(old: Union[DataOptionsChain, pd.DataFrame, None], new
             except IndexError:
                 return new
 
-            if not all([old.expires[local_offset] == next_item[0],
-                        old.strike_price[local_offset] == next_item[1],
-                        old.put_or_call[local_offset] == next_item[2],
-                        old.volume[local_offset] == next_item[3]]):
+            if not np.all([old.iloc[local_offset] == next_item]):
                 offset += 1
                 break
+
         else:  # all equals passed!
             break
 
-    else:  # no eq...
+    else:  # total: no eq...
         return new
-
 
     update = new.iloc[:offset]
 
@@ -95,7 +116,8 @@ def get_new_options_chains(old: Union[DataOptionsChain, pd.DataFrame, None], new
 
 
 class UpdateFrame:
-    def __init__(self, data_price: DataPrice, data_shorts: DataShorts, new_options_chains: pd.DataFrame):
+    def __init__(self, data_price: DataPrice, data_shorts: DataShorts, new_options_chains: pd.DataFrame, new_history: pd.DataFrame):
         self.data_price = data_price
         self.data_shorts = data_shorts
         self.new_options_chains = new_options_chains
+        self.new_history = new_history

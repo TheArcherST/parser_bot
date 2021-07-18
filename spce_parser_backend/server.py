@@ -1,14 +1,17 @@
 from threading import Thread
-from .types import UpdateFrame, get_new_options_chains
-from .db_helper import SPCEDB, SPCEOptionsChainDB
+from .types import UpdateFrame, get_table_changes
+from .db_helper import SPCEDB, SPCEOptionsChainDB, SPCEHistoryDB
 from datetime import datetime, timedelta
 from .config import UPDATES_TIMEOUT_SEC, HISTORY_WRITE_TIMEOUT_H
-from .parse_helper import get_price_data, get_shorts_data, get_options_chain
+from .parse_helper import get_price_data, get_shorts_data, get_options_chain, get_history
 import requests
+
+from .notifier import Notifier
 
 
 spce_options_db = SPCEOptionsChainDB()
 spce_db = SPCEDB()
+spce_history_db = SPCEHistoryDB()
 
 
 def is_connection():
@@ -30,6 +33,10 @@ class Server:
         self.history_update_delta = timedelta(hours=history_update_timeout_h)
         self.is_run = False
         self.last_history_upd = None
+
+
+        self.notifier = None
+        self.is_notifier_reset = False
 
     def start(self):
         if not is_connection():
@@ -65,21 +72,38 @@ class Server:
             spce_db.write_updates(updates)
 
         spce_options_db.write_updates(updates.new_options_chains)
+        spce_history_db.write_updates(updates.new_history)
 
+        if len(updates.new_history) >= 1:
+            self.notifier.reset()
+
+        if self.notifier is None:
+            self.notifier = Notifier()
+
+        self.notifier.accept_updates(updates)
 
     def _get_updates(self):
         price_data = get_price_data()
         shorts_data = get_shorts_data()
         options_chain = get_options_chain()
+        history = get_history()
 
         old_options_chain = spce_options_db.get_df(50)
         if len(old_options_chain) < 50:
             old_options_chain = None
 
         new = options_chain.df
-        new_chains = get_new_options_chains(old_options_chain, new)
+        new_chains = get_table_changes(old_options_chain, new)
 
-        result = UpdateFrame(price_data, shorts_data, new_chains)
+
+        old_history = spce_history_db.get_df(50)
+        if len(old_history) < 50:
+            old_history = None
+
+        new = history.df
+        new_history = get_table_changes(old_history, new)
+
+        result = UpdateFrame(price_data, shorts_data, new_chains, new_history)
 
         return result
 
