@@ -22,7 +22,6 @@ class UsersKeeper:
                     username TEXT,
                     first_name TEXT,
                     last_name TEXT
-
                 )""")
         connection.commit()
 

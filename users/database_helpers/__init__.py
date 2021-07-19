@@ -1,4 +1,5 @@
 from .user import UsersKeeper
+from .user_config import UserConfigsKeeper
 
 
 def accept_message(message):

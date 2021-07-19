@@ -30,7 +30,7 @@ class NotifyEntity:
 
     def send_notification(self, new_value: Union[int, float]):
         text = self.get_notification_text(new_value)
-        mailing(text)
+        mailing(text, 'spce')
 
     def get_notification_text(self, new_value: Union[int, float]) -> str:
         pass
@@ -51,11 +51,11 @@ class NotifyEntityVolume(NotifyEntity):
     def get_notification_text(self, new_value: Union[int, float]):
         percent = get_str_percent(self.start_position, new_value)
 
-        return (f"""
+        return f"""
 *Срочное уведомление - объём*
 
 Объём равен ${round(new_value / 10 ** 6, 2)} млн ({percent})
-""")
+"""
 
 
 class EmergencyNotifier:

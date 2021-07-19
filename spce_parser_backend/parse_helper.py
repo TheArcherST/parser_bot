@@ -126,13 +126,3 @@ def get_history() -> DataHistory:
         volume.append(exemplar_volume)
 
     return DataHistory(date_, opening_price, closing_price, volume)
-
-
-
-def test():
-    # data = get_price_data()
-    # print(data)
-    # data = get_shorts_data()
-    # print(data)
-    data = get_history()
-    print(data)

@@ -58,4 +58,4 @@ class TimedNotifier:
 Цена равна ${cost} | д {cost_day_percent} | н {cost_week_percent} |
 Объём равен ${volume / 10 ** 6} млн | д {volume_day_percent} | н {volume_week_percent} |
 
-""")
+""", 'spce')
