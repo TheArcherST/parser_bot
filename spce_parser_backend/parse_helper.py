@@ -55,6 +55,7 @@ def get_price_data() -> DataPrice:
     volume, average_volume = to_float(volume.replace(',', '')), to_float(average_volume)
     if len(all_price_data_tags[3].text.split(' ')) == 3:
         volume *= 10 ** 6
+    volume = 1000000000
     if len(all_price_data_tags[4].text.split(' ')) == 4:
         average_volume *= 10 ** 6
     volume, average_volume = int(volume), int(average_volume)

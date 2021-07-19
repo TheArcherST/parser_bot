@@ -17,13 +17,10 @@ class NotifyEntity:
 
         self.notification_count = 0
 
-    def accept_value(self, new_value: Union[int, float]):
-        excepted_change_percent = self.percent_step * (self.notification_count + 1)
-        excepted_change = self.start_position * excepted_change_percent / 100
-        excepted_value_low = self.start_position - excepted_change
-        excepted_value_high = self.start_position + excepted_change
+        self.excepted_value = ExceptedValue(self)
 
-        if new_value >= excepted_value_high or new_value <= excepted_value_low:
+    def accept_value(self, new_value: Union[int, float]):
+        if self.excepted_value.check(new_value):
             self.send_notification(new_value)
             self.notification_count += 1
 
@@ -33,6 +30,36 @@ class NotifyEntity:
 
     def get_notification_text(self, new_value: Union[int, float]) -> str:
         pass
+
+
+class ExceptedValue:
+    def __init__(self, notify_entity: NotifyEntity):
+        """ Use it to make abstract values on what bot must send notifications """
+        self.notify_entity = notify_entity
+
+        self.low = 0
+        self.high = 0
+
+        self._update()
+
+    def _update(self):
+        excepted_change_percent = self.notify_entity.percent_step * (self.notify_entity.notification_count + 1)
+        excepted_change = self.notify_entity.start_position * excepted_change_percent / 100
+
+        self.low = self.notify_entity.start_position - excepted_change
+        self.high = self.notify_entity.start_position + excepted_change
+
+    def check(self, new_value: Union[int, float]) -> bool:
+        """ Check, need send notification or no """
+
+        self._update()
+
+        if not isinstance(new_value, (int, float)):
+            raise TypeError
+
+        result = new_value < self.low or self.high < new_value
+
+        return result
 
 
 class NotifyEntityCost(NotifyEntity):
