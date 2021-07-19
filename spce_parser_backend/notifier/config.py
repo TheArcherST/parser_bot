@@ -11,10 +11,10 @@ class NotifInitError(Exception):
     ...
 
 
-def get_str_percent(now, last) -> str:
-    percents = 100 - (now * 100 / last)
+def get_str_percent(last, now) -> str:
+    percents = (now * 100 / last) - 100
 
-    if now < last:
+    if now > last:
         prefix = '+'
     else:
         prefix = ''

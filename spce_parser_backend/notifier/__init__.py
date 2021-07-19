@@ -16,6 +16,6 @@ class Notifier:
         self.emergency.accept_updates(updates)
         self.timed.accept_updates(updates)
 
-    def reset(self):  # need call in 00:00
+    def reset(self):
         self.emergency = EmergencyNotifier()
         self.timed = TimedNotifier()
