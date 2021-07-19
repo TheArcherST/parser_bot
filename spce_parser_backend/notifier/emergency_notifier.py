@@ -18,7 +18,6 @@ class NotifyEntity:
         self.notification_count = 0
 
     def accept_value(self, new_value: Union[int, float]):
-
         excepted_change_percent = self.percent_step * (self.notification_count + 1)
         excepted_change = self.start_position * excepted_change_percent / 100
         excepted_value_low = self.start_position - excepted_change

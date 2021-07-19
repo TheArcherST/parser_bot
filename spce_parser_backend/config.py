@@ -6,4 +6,4 @@ CHAIN_EQ_CHECK = 10
 
 # percent step. when need call emergency notification
 COST_NOTIFY_STEP = 5
-VOLUME_NOTIFY_STEP = 30
+VOLUME_NOTIFY_STEP = 50

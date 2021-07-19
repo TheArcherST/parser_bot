@@ -56,10 +56,10 @@ class DataOptionsChain:  # raw data
 
 
 class DataHistory:  # raw data
-    def __init__(self, expires: List[date], strike_price: List[float], put_or_call: List[str], volume: List[float]):
-        self.date = expires
-        self.opening_price = strike_price
-        self.closing_price = put_or_call
+    def __init__(self, date: List[date], opening_price: List[float], closing_price: List[float], volume: List[float]):
+        self.date = date
+        self.opening_price = opening_price
+        self.closing_price = closing_price
         self.volume = volume
 
     @property
@@ -78,7 +78,33 @@ class DataHistory:  # raw data
         return str(self.df)
 
 
-def get_table_changes(old: Union[DataOptionsChain, DataHistory, pd.DataFrame, None], new: Union[DataOptionsChain, DataHistory, pd.DataFrame], chain_eq_check=None) -> pd.DataFrame:
+class DataShortsHistory:
+    def __init__(self, date: List[date], total_shares: List[int], volume: List[float]):
+        self.date = date
+        self.total_shares = total_shares
+        self.volume = volume
+
+    @property
+    def df(self):
+        return pd.DataFrame(
+            {'date': self.date,
+             'total_shares': self.total_shares,
+             'volume': self.volume}
+        )
+
+    def __repr__(self):
+        return f"DataShortsHistory(date={self.date}, total_shares={self.total_shares}, volume={self.volume})"
+
+    def __str__(self):
+        return str(self.df)
+
+
+able_convert_to_df = Union[DataOptionsChain, DataHistory, DataShortsHistory]
+
+
+def get_table_changes(old: Union[able_convert_to_df, pd.DataFrame, None],
+                      new: Union[able_convert_to_df, pd.DataFrame], chain_eq_check=None) -> pd.DataFrame:
+
     if isinstance(old, (DataOptionsChain, DataHistory)):
         old = old.df
     if isinstance(new, (DataOptionsChain, DataHistory)):
@@ -116,8 +142,10 @@ def get_table_changes(old: Union[DataOptionsChain, DataHistory, pd.DataFrame, No
 
 
 class UpdateFrame:
-    def __init__(self, data_price: DataPrice, data_shorts: DataShorts, new_options_chains: pd.DataFrame, new_history: pd.DataFrame):
+    def __init__(self, data_price: DataPrice, data_shorts: DataShorts, new_options_chains: pd.DataFrame,
+                 new_history: pd.DataFrame, new_shorts_history: pd.DataFrame):
         self.data_price = data_price
         self.data_shorts = data_shorts
         self.new_options_chains = new_options_chains
         self.new_history = new_history
+        self.new_shorts_history = new_shorts_history

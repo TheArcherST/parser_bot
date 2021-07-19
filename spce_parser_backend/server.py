@@ -1,9 +1,9 @@
 from threading import Thread
 from .types import UpdateFrame, get_table_changes
-from .db_helper import SPCEDB, SPCEOptionsChainDB, SPCEHistoryDB
+from .db_helper import SPCEDB, SPCEOptionsChainDB, SPCEHistoryDB, SPCEShortsHistoryDB
 from datetime import datetime, timedelta
 from .config import UPDATES_TIMEOUT_SEC, HISTORY_WRITE_TIMEOUT_H
-from .parse_helper import get_price_data, get_shorts_data, get_options_chain, get_history
+from .parse_helper import get_price_data, get_shorts_data, get_options_chain, get_history, get_shorts_history
 import requests
 
 from .notifier import Notifier
@@ -12,6 +12,7 @@ from .notifier import Notifier
 spce_options_db = SPCEOptionsChainDB()
 spce_db = SPCEDB()
 spce_history_db = SPCEHistoryDB()
+spce_shorts_history_db = SPCEShortsHistoryDB()
 
 
 def is_connection():
@@ -36,11 +37,10 @@ class Server:
 
 
         self.notifier = None
-        self.is_notifier_reset = False
 
     def start(self):
         if not is_connection():
-            return False
+            raise ConnectionError
 
         self.is_run = True
         thread = Thread(target=self._flow)
@@ -73,12 +73,13 @@ class Server:
 
         spce_options_db.write_updates(updates.new_options_chains)
         spce_history_db.write_updates(updates.new_history)
-
-        if len(updates.new_history) >= 1:
-            self.notifier.reset()
+        spce_shorts_history_db.write_updates(updates.new_shorts_history)
 
         if self.notifier is None:
             self.notifier = Notifier()
+
+        if len(updates.new_history) >= 1:
+            self.notifier.reset()
 
         self.notifier.accept_updates(updates)
 
@@ -87,6 +88,8 @@ class Server:
         shorts_data = get_shorts_data()
         options_chain = get_options_chain()
         history = get_history()
+        shorts_history = get_shorts_history()
+
 
         old_options_chain = spce_options_db.get_df(50)
         if len(old_options_chain) < 50:
@@ -103,7 +106,16 @@ class Server:
         new = history.df
         new_history = get_table_changes(old_history, new)
 
-        result = UpdateFrame(price_data, shorts_data, new_chains, new_history)
+
+        old_history = spce_shorts_history_db.get_df(50)
+        if len(old_history) < 50:
+            old_history = None
+
+        new = shorts_history.df
+        new_shorts_history = get_table_changes(old_history, new)
+
+
+        result = UpdateFrame(price_data, shorts_data, new_chains, new_history, new_shorts_history)
 
         return result
 

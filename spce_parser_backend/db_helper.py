@@ -35,6 +35,36 @@ class SPCEHistoryDB:
         return df
 
 
+class SPCEShortsHistoryDB:
+    path = 'data/spce.db'
+
+    def __init__(self):
+         with sql.connect(self.path) as conn:
+             cursor = conn.cursor()
+             cursor.execute("""CREATE TABLE IF NOT EXISTS spce_site_shorts_history (
+                date DATE,
+                total_shares INT,
+                volume INT
+             )""")
+             conn.commit()
+             cursor.close()
+
+    def write_updates(self, updates: pd.DataFrame):
+        with sql.connect(self.path) as conn:
+            cursor = conn.cursor()
+            for index, series in updates.iterrows():
+                cursor.execute("""INSERT INTO spce_site_shorts_history VALUES (?, ?, ?)
+                """, (series[0], series[1], series[2]))
+            conn.commit()
+            cursor.close()
+
+    def get_df(self, length):
+        with sql.connect(self.path) as conn:
+            df = pd.read_sql(f"SELECT * FROM spce_site_shorts_history LIMIT {length}", conn)
+            df.date = df.date.astype('datetime64[ns]')
+        return df
+
+
 class SPCEOptionsChainDB:
     path = 'data/spce.db'
 

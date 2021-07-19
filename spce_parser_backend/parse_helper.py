@@ -1,9 +1,17 @@
 import requests
 from bs4 import BeautifulSoup
 from typing import Union
-from .types import DataPrice, DataShorts, DataOptionsChain, DataHistory
+from .types import DataPrice, DataShorts, DataOptionsChain, DataHistory, DataShortsHistory
 import pandas as pd
 from datetime import datetime, date
+
+
+def is_connection():
+    try:
+        requests.get('https://www.google.ru/')
+    except:
+        return False
+    return True
 
 
 def to_float(data: Union[str, int]):
@@ -16,6 +24,12 @@ def to_float(data: Union[str, int]):
 
 def get_soup(url):
     responce = requests.get(url)
+    if not responce and is_connection():
+        print(f'Error while get {url}, we trying again')
+        return get_soup(url)
+    else:
+        pass
+
     html = responce.text
     soup = BeautifulSoup(html, features="html.parser")
 
@@ -34,14 +48,15 @@ def get_price_data() -> DataPrice:
 
     cost = float(raw_cost)
 
-
     all_price_data_tags = soup.find_all(class_='price-data')
 
     volume = all_price_data_tags[3].text.split(' ')[0][6:]
     average_volume = all_price_data_tags[4].text.split(' ')[1][6:]
-    volume, average_volume = to_float(volume), to_float(average_volume)
-    volume *= 10 ** 6
-    average_volume *= 10 ** 6
+    volume, average_volume = to_float(volume.replace(',', '')), to_float(average_volume)
+    if len(all_price_data_tags[3].text.split(' ')) == 3:
+        volume *= 10 ** 6
+    if len(all_price_data_tags[4].text.split(' ')) == 4:
+        average_volume *= 10 ** 6
     volume, average_volume = int(volume), int(average_volume)
 
     result = DataPrice(cost, volume, average_volume)
@@ -126,3 +141,32 @@ def get_history() -> DataHistory:
         volume.append(exemplar_volume)
 
     return DataHistory(date_, opening_price, closing_price, volume)
+
+
+def get_shorts_history() -> DataShortsHistory:
+    soup = get_soup('https://www.marketbeat.com/stocks/NYSE/SPCE/short-interest/')
+
+    all_lines = soup.find('table', {'class': 'scroll-table'}).find('tbody').find_all('tr')
+
+    date_ = list()
+    total_shares = list()
+    volume = list()
+
+    for line in all_lines:
+        sections = line.find_all('td')
+        if len(sections) == 1:
+            continue
+        spl = sections[0].text.split('/')
+        month = int(spl[0])
+        day = int(spl[1])
+        year = int(spl[2])
+        exemplar_date = date(year=year, month=month, day=day)
+        date_.append(exemplar_date)
+
+        exemplar_total_shares = to_float(sections[1]['data-sort-value'])
+        total_shares.append(exemplar_total_shares)
+
+        exemplar_volume = to_float(sections[2]['data-sort-value'][1:].replace(',', ''))
+        volume.append(exemplar_volume)
+
+    return DataShortsHistory(date_, total_shares, volume)

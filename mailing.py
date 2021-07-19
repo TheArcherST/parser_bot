@@ -12,7 +12,8 @@ def mailing(markdown_text, mailing_tag: str = None):
             conn = UserConfigsKeeper()
             config = conn.get_config(chat_id)
             if mailing_tag == 'spce' and not config.spce:
-                continue
+                ...
+                # continue
 
         try:
             chat = bot.get_chat(chat_id)
