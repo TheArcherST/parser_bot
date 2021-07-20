@@ -73,15 +73,15 @@ class TimedNotifier:
 
 *Плановое уведомление*
 
-Цена равна ${cost}
+- Цена равна ${cost}
 За день {cost_day_percent}
 За неделю {cost_week_percent}
 
-Объём равен {volume / 10 ** 6} млн акций
+- Объём равен {volume / 10 ** 6} млн акций
 За день {volume_day_percent}
 За неделю {volume_week_percent}
 
-Объём шорта равен {short / 10 ** 6} млн акций
+- Объём шорта равен {short / 10 ** 6} млн акций
 За день {shorts_day_percent}
 За неделю {shorts_week_percent}
 

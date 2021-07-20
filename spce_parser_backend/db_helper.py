@@ -30,7 +30,7 @@ class SPCEHistoryDB:
 
     def get_df(self, length):
         with sql.connect(self.path) as conn:
-            df = pd.read_sql(f"SELECT * FROM spce_site_history LIMIT {length}", conn)
+            df = pd.read_sql(f"SELECT * FROM spce_site_history ORDER BY date DESC LIMIT {length}", conn)
             df.date = df.date.astype('datetime64[ns]')
         return df
 
@@ -60,7 +60,7 @@ class SPCEShortsHistoryDB:
 
     def get_df(self, length):
         with sql.connect(self.path) as conn:
-            df = pd.read_sql(f"SELECT * FROM spce_site_shorts_history LIMIT {length}", conn)
+            df = pd.read_sql(f"SELECT * FROM spce_site_shorts_history ORDER BY date DESC LIMIT {length}", conn)
             df.date = df.date.astype('datetime64[ns]')
         return df
 
@@ -91,7 +91,7 @@ class SPCEOptionsChainDB:
 
     def get_df(self, length):
         with sql.connect(self.path) as conn:
-            df = pd.read_sql(f"SELECT * FROM spce_options_chain_history LIMIT {length}", conn)
+            df = pd.read_sql(f"SELECT * FROM spce_options_chain_history ORDER BY expires DESC LIMIT {length}", conn)
             df.expires = df.expires.astype('datetime64[ns]')
         return df
 
@@ -125,6 +125,6 @@ class SPCEDB:
 
     def get_df(self, length):
         with sql.connect(self.path) as conn:
-            df = pd.read_sql(f"SELECT * FROM spce_history LIMIT {length}", conn)
+            df = pd.read_sql(f"SELECT * FROM spce_history LIMIT {length} ORDER BY write_time DESC", conn)
             df.write_time = df.write_time.astype('datetime64[ns]')
         return df

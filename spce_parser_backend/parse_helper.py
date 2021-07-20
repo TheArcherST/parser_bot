@@ -79,9 +79,10 @@ def get_shorts_data() -> DataShorts:
 
 def get_options_chain() -> DataOptionsChain:
     soup = get_soup('https://www.marketbeat.com/stocks/NYSE/SPCE/options/')
-
-    all_lines = soup.find('table').find('tbody').find_all('tr')
-
+    try:
+        all_lines = soup.find('table').find('tbody').find_all('tr')
+    except:
+        return DataOptionsChain(list(), list(), list(), list())
     expires = list()
     strike_price = list()
     put_or_call = list()

@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from .config import UPDATES_TIMEOUT_SEC, HISTORY_WRITE_TIMEOUT_H
 from .parse_helper import get_price_data, get_shorts_data, get_options_chain, get_history, get_shorts_history
 import requests
+from time import sleep
 
 from .notifier import Notifier
 
@@ -30,7 +31,7 @@ class Server:
         if history_update_timeout_h is None:
             history_update_timeout_h = HISTORY_WRITE_TIMEOUT_H
 
-        self.update_delta = timedelta(seconds=update_timeout_sec)
+        self.update_delta = update_timeout_sec
         self.history_update_delta = timedelta(hours=history_update_timeout_h)
         self.is_run = False
         self.last_history_upd = None
@@ -64,6 +65,8 @@ class Server:
 
             if not self.is_run:
                 break
+        sleep(self.update_delta)
+
 
     def accept_updates(self, to_write_history=False):
         updates = self._get_updates()
@@ -106,14 +109,12 @@ class Server:
         new = history.df
         new_history = get_table_changes(old_history, new)
 
-
-        old_history = spce_shorts_history_db.get_df(50)
-        if len(old_history) < 50:
+        old_history = spce_shorts_history_db.get_df(10)
+        if len(old_history) < 10:
             old_history = None
 
         new = shorts_history.df
-        new_shorts_history = get_table_changes(old_history, new)
-
+        new_shorts_history = get_table_changes(old_history, new, 5)
 
         result = UpdateFrame(price_data, shorts_data, new_chains, new_history, new_shorts_history)
 
