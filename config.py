@@ -1,16 +1,17 @@
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import telebot
 import datetime
 
+from api import BOT_API_KEY
 
-dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-if os.path.exists(dotenv_path):
-    load_dotenv(dotenv_path)
+# dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+# if os.path.exists(dotenv_path):
+#     load_dotenv(dotenv_path)
 
 
 telebot.apihelper.ENABLE_MIDDLEWARE = True
 
-BOT_API_KEY = os.environ.get('BOT_API_KEY')
+# BOT_API_KEY = os.environ.get('BOT_API_KEY')
 
 bot = telebot.TeleBot(BOT_API_KEY)

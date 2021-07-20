@@ -37,6 +37,10 @@ ehthumbs.db
 Thumbs.db
 
 
-# Env variables
-###############
+# Env variables #
+#################
 *.env
+
+
+#################
+api.py
