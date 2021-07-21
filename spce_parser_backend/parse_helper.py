@@ -4,6 +4,7 @@ from typing import Union
 from .types import DataPrice, DataShorts, DataOptionsChain, DataHistory, DataShortsHistory
 import pandas as pd
 from datetime import datetime, date
+from time import sleep
 
 
 def is_connection():
@@ -171,3 +172,22 @@ def get_shorts_history() -> DataShortsHistory:
         volume.append(exemplar_volume)
 
     return DataShortsHistory(date_, total_shares, volume)
+
+
+def get_analyst_ratings() -> pd.Series:
+    url = 'https://www.marketbeat.com/stocks/NYSE/SPCE/price-target/'
+    responce = requests.get(url)
+    if not responce:
+        print(f'bad responce ob get {url}, we try again')
+        sleep(1)
+        return get_analyst_ratings()
+
+    df_list = pd.read_html(responce.text)
+    df = df_list[0]
+    select = df.Today
+    select[1] = float(select[1])  # 3.1
+    select[2] = select[2].replace('(s)', '(s)\n')  # just str formating
+    select[3] = float(select[3][1:])  # $421.52
+    select[4] = float(select[4].split(' ')[0][:-1])  # 22.94% upside
+
+    return select

@@ -96,6 +96,52 @@ class SPCEOptionsChainDB:
         return df
 
 
+class SPCEAnalystRatingsDB:
+    path = 'data/spce.db'
+
+    def __init__(self):
+         with sql.connect(self.path) as conn:
+             cursor = conn.cursor()
+             cursor.execute("""CREATE TABLE IF NOT EXISTS spce_analyst_ratings (
+                consensus_rating TEXT,
+                consensus_rating_score REAL,
+                analyst_ratings TEXT,
+                consensus_price_target REAL,
+                consensus_price_upside REAL
+             )""")
+             conn.commit()
+             cursor.close()
+
+    def update(self, series: pd.Series):
+        with sql.connect(self.path) as conn:
+            cursor = conn.cursor()
+            for index, series in updates.iterrows():
+                cursor.execute("""INSERT INTO spce_analyst_ratings VALUES (?, ?, ?, ?, ?)
+                """, (series[0], series[1], series[2], series[3], series[4]))
+            conn.commit()
+            cursor.close()
+
+    def is_new(self, theme: pd.Series, upd=True):
+        with sql.connect(self.path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""SELECT * FROM spce_analyst_ratings
+            """)
+            data = cursor.fetchall()
+            conn.commit()
+            cursor.close()
+        breakpoint()
+        if len(data) < 1:
+            if upd:
+                self.update(theme)
+            return True
+
+        is_new = pd.Series(data[0]) != theme
+        if is_new & upd:
+            self.update(theme)
+
+        return is_new
+
+
 class SPCEDB:
     path = 'data/spce.db'
 

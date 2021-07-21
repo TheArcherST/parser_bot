@@ -62,7 +62,7 @@ class ExceptedValue:
         return result
 
 
-class NotifyEntityCost(NotifyEntity):
+class NotifyEntityCost(NotifyEntity):  # i know that it bad "solution"))
     def get_notification_text(self, new_value: Union[int, float]):
         percent = get_str_percent(self.start_position, new_value)
 

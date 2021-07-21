@@ -1,9 +1,9 @@
 from threading import Thread
-from .types import UpdateFrame, get_table_changes
-from .db_helper import SPCEDB, SPCEOptionsChainDB, SPCEHistoryDB, SPCEShortsHistoryDB
+from .types import UpdateFrame, get_table_changes, analyst_ratings_mailing
+from .db_helper import SPCEDB, SPCEOptionsChainDB, SPCEHistoryDB, SPCEShortsHistoryDB, SPCEAnalystRatingsDB
 from datetime import datetime, timedelta
 from .config import UPDATES_TIMEOUT_SEC, HISTORY_WRITE_TIMEOUT_H
-from .parse_helper import get_price_data, get_shorts_data, get_options_chain, get_history, get_shorts_history
+from .parse_helper import get_price_data, get_shorts_data, get_options_chain, get_history, get_analyst_ratings, get_shorts_history
 import requests
 from time import sleep
 
@@ -14,6 +14,7 @@ spce_options_db = SPCEOptionsChainDB()
 spce_db = SPCEDB()
 spce_history_db = SPCEHistoryDB()
 spce_shorts_history_db = SPCEShortsHistoryDB()
+spce_analyst_ratings_db = SPCEAnalystRatingsDB()
 
 
 def is_connection():
@@ -84,6 +85,9 @@ class Server:
         if len(updates.new_history) >= 1:
             self.notifier.reset()
 
+        if spce_analyst_ratings_db.is_new(updates.analyst_ratings):
+            analyst_ratings_mailing(updates.analyst_ratings)
+
         self.notifier.accept_updates(updates)
 
     def _get_updates(self):
@@ -92,6 +96,7 @@ class Server:
         options_chain = get_options_chain()
         history = get_history()
         shorts_history = get_shorts_history()
+        analyst_ratings = get_analyst_ratings()
 
 
         old_options_chain = spce_options_db.get_df(50)
@@ -116,7 +121,7 @@ class Server:
         new = shorts_history.df
         new_shorts_history = get_table_changes(old_history, new, 5)
 
-        result = UpdateFrame(price_data, shorts_data, new_chains, new_history, new_shorts_history)
+        result = UpdateFrame(price_data, shorts_data, analyst_ratings, new_chains, new_history, new_shorts_history)
 
         return result
 

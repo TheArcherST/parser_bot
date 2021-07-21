@@ -5,6 +5,7 @@ from datetime import datetime, date
 from .config import CHAIN_EQ_CHECK
 from typing import Union
 import pytest
+from mailing import mailing
 
 
 class DataPrice:
@@ -142,10 +143,27 @@ def get_table_changes(old: Union[able_convert_to_df, pd.DataFrame, None],
 
 
 class UpdateFrame:
-    def __init__(self, data_price: DataPrice, data_shorts: DataShorts, new_options_chains: pd.DataFrame,
+    def __init__(self, data_price: DataPrice, data_shorts: DataShorts, analyst_ratings: pd.Series, new_options_chains: pd.DataFrame,
                  new_history: pd.DataFrame, new_shorts_history: pd.DataFrame):
         self.data_price = data_price
         self.data_shorts = data_shorts
         self.new_options_chains = new_options_chains
         self.new_history = new_history
         self.new_shorts_history = new_shorts_history
+        self.analyst_ratings = analyst_ratings
+
+
+def analyst_ratings_mailing(new_data: pd.Series):
+    mailing(f"""
+
+*Изменение в аналиитке SPCE*
+
+
+Consensus Rating: {new_data[0]}
+Consensus Rating Score: {new_data[1]}
+Analyst Ratings:
+{new_data[2]}
+Consensus Price Target: {new_data[3]}
+Price Target Upside: {new_data[4]}
+
+""", 'spce')

@@ -7,6 +7,7 @@ from .config import NotifInitError
 class Notifier:
     def __init__(self):
         """ Initialize it only past your server get first updates """
+        
         self.emergency = EmergencyNotifier()
         self.timed = TimedNotifier()
 
